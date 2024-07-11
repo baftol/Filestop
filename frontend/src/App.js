@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
+import RegisterPage from "./pages/RegisterPage";
+import UploadPage from "./pages/UploadPage";
 
 const App = () => {
   return (
@@ -37,8 +39,8 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<LoginPage />} />
-          <Route path="/upload" element={<HomePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/upload" element={<UploadPage />} />
           <Route path="/profile/:username" element={<DashboardPage />} />
         </Routes>
       </div>

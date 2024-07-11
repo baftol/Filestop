@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"filestop-backend/internal/config"
+	"filestop-backend/internal/helpers"
 	"filestop-backend/internal/models"
 	"net/http"
 )
@@ -33,9 +34,13 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Username is already taken", http.StatusConflict)
 		return
 	}
+	hashedPassword, err := helpers.HashPassword(req.Password)
+	if err != nil {
+		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+	}
 	user := models.User{
 		Username:         req.Username,
-		Password:         req.Password,
+		Password:         hashedPassword,
 		Email:            req.Email,
 		PublicKey:        req.PublicKey,
 		EncryptedPrivKey: req.EncryptedPrivKey,

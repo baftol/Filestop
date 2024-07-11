@@ -1,5 +1,7 @@
 // src/index.js
 
+// Expose idbKeyval to the global scope
+
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";

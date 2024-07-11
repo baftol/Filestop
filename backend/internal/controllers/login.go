@@ -7,6 +7,8 @@ import (
 	"filestop-backend/internal/models"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserLoginRequest struct {
@@ -31,7 +33,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if user.Password != req.Password {
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
@@ -48,6 +51,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Now().Add(10 * time.Minute),
 	})
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(UserLoginResponse{
 		Token:            token,

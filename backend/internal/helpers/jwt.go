@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var jwtKey []byte
@@ -16,6 +17,15 @@ var jwtKey []byte
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
+}
+
+func HashPassword(password string) (string, error) {
+	// Generate the hashed password with a default cost of 10.
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
 }
 
 func generateSecretKey(length int) []byte {

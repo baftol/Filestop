@@ -1,30 +1,31 @@
 import axios from "axios";
-import { generateKeyPair, encryptPrivateKey } from "../utils/crypto";
-import { useNavigate } from "react-router-dom";
+import * as crypto from "../utils/crypto";
 
-export const handleRegister = async (e, username, password, setMessage, navigate) => {
+export const handleRegister = async (e, username, password, email, setmessage, navigate) => {
   e.preventDefault();
-  const navigate = useNavigate();
 
   try {
-    const { publicKey, privateKey } = await generateKeyPair();
-    const encryptedPrivateKey = await encryptPrivateKey(password, privateKey);
+    const { publicKey, privateKey } = await crypto.generateKeyPair();
+    const derivedKey = await crypto.deriveKeyFromPassword(password, username);
+    const hashedPassword = await crypto.hashPassword(password, username);
+    const encryptedPrivateKey = await crypto.encryptPrivateKey(privateKey, derivedKey);
 
-    const response = await axios.post("/register", {
-      username,
-      password,
-      publicKey,
-      encryptedPrivateKey,
+    const response = await axios.post("/api/register", {
+      username: username,
+      password: hashedPassword,
+      email: email,
+      public_key: publicKey,
+      encrypted_priv_key: encryptedPrivateKey,
     });
 
-    if (response.status === 200) {
-      setMessage(response.data.message);
+    if (response.status === 201) {
+      setmessage(response.data.message);
       // Redirect to login page after successful registration without reloading
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      // setTimeout(() => {
+      //   navigate("/login");
+      // }, 2000);
     }
   } catch (error) {
-    setMessage(error.response ? error.response.data : "Registration failed");
+    setmessage(error.response ? error.response.data : "Registration failed");
   }
 };

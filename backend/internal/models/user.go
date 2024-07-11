@@ -30,7 +30,7 @@ func UsernameTaken(db *sql.DB, username string) (bool, error) {
 	return exists, nil
 }
 func CreateUser(db *sql.DB, user *User) error {
-	query := `INSERT INTO users (username, password, email, public_key, encrypted_priv_key) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO users (username, password, email, public_key, encrypted_priv_key) VALUES ($1, $2, $3, $4,$5)`
 	_, err := db.Exec(query, user.Username, user.Password, user.Email, user.PublicKey, user.EncryptedPrivKey)
 	return err
 }

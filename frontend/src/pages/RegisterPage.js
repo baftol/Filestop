@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { handleLogin } from "../components/LoginUser";
+import { handleRegister } from "../components/RegisterUser";
 import { Box, TextField, Button, Typography, Paper, Link, CssBaseline, Container, Grid, InputLabel } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import backgroundImage from "../assets/background-image.png"; // Ensure this path is correct
 
 const theme = createTheme();
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const navigate = useNavigate();
   const [username, setusername] = useState("");
   const [password, setpassword] = useState("");
+  const [email, setemail] = useState("");
   const [message, setmessage] = useState("");
 
   return (
@@ -35,31 +36,36 @@ const LoginPage = () => {
         <Container component="main" maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
           <Paper elevation={3} sx={{ padding: 4, borderRadius: 2, backgroundColor: "#2c2f33" }}>
             <Box>
-              <Typography variant="h4" sx={{ mb: 5 }} component="h1" align="center" color="#e0e0e0" gutterBottom>
-                Welcome back!
+              <Typography variant="h4" component="h1" align="center" color="#e0e0e0" gutterBottom>
+                Create an account
               </Typography>
-              <form onSubmit={(e) => handleLogin(e, username, password, setmessage, navigate)}>
+              <form onSubmit={(e) => handleRegister(e, username, password, email, setmessage, navigate)}>
+                <InputLabel htmlFor="email" style={{ color: "#e0e0e0" }}>
+                  Email
+                </InputLabel>
+                <TextField margin="normal" required fullWidth id="email" name="email" autoComplete="email" autoFocus value={email} onChange={(e) => setemail(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
+                <InputLabel htmlFor="name" style={{ color: "#e0e0e0" }}>
+                  Name
+                </InputLabel>
+                <TextField margin="normal" required fullWidth id="name" name="name" autoComplete="name" sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
                 <InputLabel htmlFor="username" style={{ color: "#e0e0e0" }}>
-                  Username*
+                  Username
                 </InputLabel>
-                <TextField margin="normal" required fullWidth id="username" name="username" autoComplete="username" autoFocus value={username} onChange={(e) => setusername(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
+                <TextField margin="normal" required fullWidth id="username" name="username" autoComplete="username" value={username} onChange={(e) => setusername(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
                 <InputLabel htmlFor="password" style={{ color: "#e0e0e0" }}>
-                  Password*
+                  Password
                 </InputLabel>
-                <TextField margin="normal" required fullWidth name="password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setpassword(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
-                <Link href="#" variant="body2" display="block" align="center">
-                  Forgot your password?
-                </Link>
+                <TextField margin="normal" required fullWidth name="password" label="Password" type="password" id="password" value={password} onChange={(e) => setpassword(e.target.value)} sx={{ mb: 3, mt: 0, input: { color: "#fff" }, backgroundColor: "#000", borderRadius: 1 }} />
                 <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 3, mb: 2 }}>
-                  Log In
+                  Register
                 </Button>
               </form>
               <Grid container justifyContent="center">
                 <Grid item>
                   <Typography variant="body2" color="#e0e0e0">
-                    Need an account?{" "}
-                    <Link href="#" variant="body2" onClick={() => navigate("/register")}>
-                      Register
+                    Already have an account?{" "}
+                    <Link component="button" href="#" variant="body2" onClick={() => navigate("/login")}>
+                      Log In
                     </Link>
                   </Typography>
                 </Grid>
@@ -77,4 +83,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

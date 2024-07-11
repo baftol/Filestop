@@ -1,1 +1,6 @@
 .env
+frontend/src/utils/test_file.mkv
+frontend/src/utils/result.txt
+ssl/
+.log
+

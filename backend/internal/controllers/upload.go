@@ -37,6 +37,8 @@ type FileUploadResponse struct {
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	var req FileUploadRequest
+	w.WriteHeader(http.StatusOK)
+	return
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
