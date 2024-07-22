@@ -149,7 +149,11 @@ export async function encryptPrivateKey(privateKey, derivedKey) {
   // Return the IV and ciphertext as base64 strings
 }
 async function decryptPrivateKey(encryptedPrivateKey, derivedKey) {
-  const { iv, ciphertext } = JSON.parse(encryptedPrivateKey);
+  const jsonobject = JSON.parse(encryptedPrivateKey);
+  const iv = jsonobject.iv;
+  console.log(iv);
+  const ciphertext = jsonobject.ciphertext;
+  console.log(ciphertext);
 
   const decrypted = await window.crypto.subtle.decrypt(
     {
@@ -177,6 +181,18 @@ export async function encryptSymKey(symKey, publicKey) {
 
   return arrayBufferToBase64(encryptedSymKey);
 }
+async function importKey(rawKeyBuffer) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    rawKeyBuffer,
+    {
+      name: "AES-GCM",
+    },
+    true,
+    ["encrypt", "decrypt"],
+  );
+  return key;
+}
 
 export async function decryptSymKey(base64EncryptedSymKey, encryptedPrivateKey, derivedKey) {
   const base64PrivateKey = await decryptPrivateKey(encryptedPrivateKey, derivedKey);
@@ -189,6 +205,8 @@ export async function decryptSymKey(base64EncryptedSymKey, encryptedPrivateKey, 
     privateKey,
     encryptedSymKeyArrayBuffer,
   );
+
+  return await importKey(symKey);
   return new Uint8Array(symKey);
 }
 
@@ -226,33 +244,39 @@ export async function encryptFileAndMetadata(file, metadata, symKey) {
 }
 
 export async function decryptFileAndMetadata(encryptedFile, encryptedMetadata, encryptedSymKey, iv, encryptedPrivateKey, derivedKey) {
-  const symKey = await decryptSymKey(encryptedSymKey, encryptedPrivateKey, derivedKey);
+  try {
+    const symKey = await decryptSymKey(encryptedSymKey, encryptedPrivateKey, derivedKey);
 
-  // Decrypt the file content
-  const fileBuffer = encryptedFile; // arraybuffer
-  const decryptedFileBuffer = await window.crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: base64ToArrayBuffer(iv),
-    },
-    symKey,
-    fileBuffer,
-  );
+    // Decrypt the file content
+    const fileBuffer = encryptedFile; // arraybuffer
+    const decryptedFileBuffer = await window.crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: base64ToArrayBuffer(iv),
+      },
+      symKey,
+      fileBuffer,
+    );
 
-  // Decrypt the metadata
-  const decryptedMetadataBuffer = await window.crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv: base64ToArrayBuffer(iv),
-    },
-    symKey,
-    base64ToArrayBuffer(encryptedMetadata),
-  );
-
-  const metadata = JSON.parse(new TextDecoder().decode(decryptedMetadataBuffer));
-
-  return {
-    decryptedFile: new Blob([decryptedFileBuffer], { type: metadata.type }),
-    metadata: metadata,
-  }; // returns json
+    // Decrypt the metadata
+    const decryptedMetadataBuffer = await window.crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: base64ToArrayBuffer(iv),
+      },
+      symKey,
+      base64ToArrayBuffer(encryptedMetadata),
+    );
+    const decryptedMetadataString = new TextDecoder().decode(decryptedMetadataBuffer);
+    console.log(decryptedMetadataString);
+    const metadata = JSON.parse(decryptedMetadataString);
+    console.log(metadata);
+    return {
+      decryptedFile: new Blob([decryptedFileBuffer], { type: metadata.type }),
+      metadata: metadata,
+    }; // returns json
+  } catch (error) {
+    console.error("Error decrypting file and metadata:", error);
+    throw error;
+  }
 }

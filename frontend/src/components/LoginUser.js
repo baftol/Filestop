@@ -1,6 +1,5 @@
 import axios from "axios";
 import { set as idbSet } from "idb-keyval";
-import { get as idbGet } from "idb-keyval";
 import * as crypto from "../utils/crypto";
 
 export const handleLogin = async (e, username, password, setMessage, navigate) => {
@@ -15,15 +14,13 @@ export const handleLogin = async (e, username, password, setMessage, navigate) =
 
     if (response.status === 200) {
       const derivedKey = await crypto.deriveKeyFromPassword(password, username);
-      await idbSet("encryptinKey", derivedKey);
-      // Store the JWT token in a cookie
-
-      // Derive the key from the password
-
-      // this key is used to encrypt private key
+      await idbSet("encryptionKey", derivedKey);
+      localStorage.setItem("username", username);
       setMessage("Login Successful");
     }
   } catch (error) {
-    return { success: false, message: error.response ? error.response.data : "Login failed" };
+    setMessage("Login Failed");
+    return;
+    // return { success: false, message: error.response ? error.response.data : "Login failed" };
   }
 };

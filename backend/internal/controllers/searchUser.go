@@ -19,7 +19,7 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	keys, err := config.Rdb.Keys(config.Ctx, query+"*").Result()
 	if err != nil {
-		http.Error(w, "Error querying Redis", http.StatusInternalServerError)
+		http.Error(w, "error querying Redis", http.StatusInternalServerError)
 		return
 	}
 	sort.Strings(keys)
@@ -31,12 +31,12 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 	for i, key := range keys {
 		userJSON, err := config.Rdb.Get(config.Ctx, key).Result()
 		if err != nil {
-			http.Error(w, "Error getting user ID from Redis", http.StatusInternalServerError)
+			http.Error(w, "error getting user ID from Redis", http.StatusInternalServerError)
 			return
 		}
 		var user models.SearchUser
 		if err := json.Unmarshal([]byte(userJSON), &user); err != nil {
-			http.Error(w, "Error unmarshalling user data", http.StatusInternalServerError)
+			http.Error(w, "error unmarshalling user data", http.StatusInternalServerError)
 			return
 		}
 		users[i] = user
@@ -44,6 +44,6 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(users); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
 	}
 }

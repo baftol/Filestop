@@ -30,17 +30,30 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := models.GetUserByUsername(config.UserDB, req.Username)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		http.Error(w, "invalid username or password", http.StatusUnauthorized)
 		return
 	}
 	token, err := helpers.GenerateJWT(req.Username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session := models.Session{
+		Username: req.Username,
+	}
+	sessionJSON, err := json.Marshal(session)
+	if err != nil {
+		http.Error(w, "Could not create session", http.StatusInternalServerError)
+		return
+	}
+	err = config.Rdb.Set(config.Ctx, "session:"+token, sessionJSON, 10*time.Minute).Err()
+	if err != nil {
+		http.Error(w, "Could not store session", http.StatusInternalServerError)
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -54,8 +67,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(UserLoginResponse{
-		Token:            token,
-		EncryptedPrivKey: user.EncryptedPrivKey,
-		Message:          "Login successful",
+		// Token:            token,
+		// EncryptedPrivKey: user.EncryptedPrivKey,
+		Message: "Login successful",
 	})
 }

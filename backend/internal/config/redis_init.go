@@ -8,11 +8,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-}
-
 func InitializeRedis() {
 	query := `SELECT id, username,public_key FROM users`
 

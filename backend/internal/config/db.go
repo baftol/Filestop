@@ -23,11 +23,11 @@ func ConnectUserDB() error {
 	)
 	UserDB, err = sql.Open("pgx", dsn)
 	if err != nil {
-		return fmt.Errorf("Error pinging the database: %w", err)
+		return fmt.Errorf("error pinging the database: %w", err)
 	}
 	err = UserDB.Ping()
 	if err != nil {
-		return fmt.Errorf("Error pinging the database: %w", err)
+		return fmt.Errorf("error pinging the database: %w", err)
 	}
 	fmt.Println("Connected to the database successfully")
 	createTableSQL := `
@@ -42,7 +42,7 @@ func ConnectUserDB() error {
     );`
 	_, err = UserDB.Exec(createTableSQL)
 	if err != nil {
-		return fmt.Errorf("Error creating table: %w", err)
+		return fmt.Errorf("error creating table: %w", err)
 	}
 	return nil
 }
@@ -57,27 +57,26 @@ func ConnectFileDB() error {
 	)
 	FileDB, err = sql.Open("pgx", dsn)
 	if err != nil {
-		return fmt.Errorf("Error pinging the database: %w", err)
+		return fmt.Errorf("error pinging the database: %w", err)
 	}
 	err = FileDB.Ping()
 	if err != nil {
-		return fmt.Errorf("Error pinging the database: %v", err)
+		return fmt.Errorf("error pinging the database: %v", err)
 	}
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS files (
 	id SERIAL PRIMARY KEY,
-	file_name VARCHAR(255) NOT NULL,
 	url_path TEXT NOT NULL,
 	file_path TEXT NOT NULL,
 	uploaded_at TIMESTAMP NOT NULL,
-	uploaded_by VARCHAR(255) NOT NULL,
-	is_anonymous BOOLEAN NOT NULL,
+	uploader VARCHAR(255) NOT NULL,
 	access_map JSONB NOT NULL,
-	encrypted_metadata BYTEA NOT NULL
+	encrypted_metadata BYTEA NOT NULL,
+	iv BYTEA NOT NULL
 	);`
 	_, err = FileDB.Exec(createTableSQL)
 	if err != nil {
-		return fmt.Errorf("Error creating table: %w", err)
+		return fmt.Errorf("error creating table: %w", err)
 	}
 
 	fmt.Println("Connected to the database successfully")
@@ -87,14 +86,14 @@ func CloseDBs() {
 	if UserDB != nil {
 		err := UserDB.Close()
 		if err != nil {
-			log.Printf("Error closing user database connection: %v", err)
+			log.Printf("error closing user database connection: %v", err)
 		}
 	}
 
 	if FileDB != nil {
 		err := FileDB.Close()
 		if err != nil {
-			log.Printf("Error closing file database connection: %v", err)
+			log.Printf("error closing file database connection: %v", err)
 		}
 	}
 }

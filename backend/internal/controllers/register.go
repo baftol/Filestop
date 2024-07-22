@@ -50,6 +50,20 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	userdb, err := models.GetUserByUsername(config.UserDB, user.Username)
+	if err != nil {
+		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+	}
+	usercache := models.SearchUser{
+		ID:        userdb.ID,
+		Username:  userdb.Username,
+		PublicKey: userdb.PublicKey,
+	}
+	userJSON, err := json.Marshal(usercache)
+	err = config.Rdb.Set(config.Ctx, user.Username, userJSON, 0).Err()
+	if err != nil {
+		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+	}
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(UserRegisterResponse{Message: "User Registered Successfully"})

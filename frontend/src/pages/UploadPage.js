@@ -1,18 +1,14 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AppBar, Toolbar, Typography, Container, Box, Button, Snackbar, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Chip } from "@material-ui/core";
 import { Circle } from "rc-progress";
 import Alert from "@material-ui/lab/Alert";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import axios from "axios";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import * as crypto from "../utils/crypto";
-const axiosInstance = axios.create({
-  baseURL: "/api",
-  timeout: 10000,
-  // headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-});
+import { axiosInstance } from "../utils/axiosRequest";
+import { getPublicKey } from "../components/GetUserPublicKey.js";
 
-const UploadPage = ({ username }) => {
+const UploadPage = () => {
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -22,6 +18,13 @@ const UploadPage = ({ username }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
   const inputRef = useRef();
+  const [username, setUsername] = useState("");
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -39,11 +42,15 @@ const UploadPage = ({ username }) => {
   };
 
   const handleUserSearch = async (event, value) => {
+    setUsername(localStorage.getItem("username"));
     if (value) {
       try {
         const response = await axiosInstance.get(`/users?query=${value}`);
         if (response.status === 200) {
-          setUserOptions(response.data);
+          console.log(username);
+          const filteredOptions = response.data.filter((user) => !selectedUsers.some((selected) => selected.username === user.username) && user.username !== username);
+          console.log("Filtered Options:", filteredOptions);
+          setUserOptions(filteredOptions);
         }
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -75,10 +82,16 @@ const UploadPage = ({ username }) => {
             return { username: user.username, encryptedSymKey: encryptedSymKey };
           }),
         );
+        setUsername(localStorage.getItem("username"));
+        const uploaderPublicKey = await getPublicKey(username);
+        const encryptedSymKeyForUploader = await crypto.encryptSymKey(symKey, uploaderPublicKey);
+        encryptedSymKeys.push({ username: username, encryptedSymKey: encryptedSymKeyForUploader });
+
         formData.append("file", new Blob([crypto.base64ToArrayBuffer(encryptedFile)]));
         formData.append("metadata", encryptedMetadata);
         formData.append("iv", iv);
         formData.append("encryptedKeys", JSON.stringify(encryptedSymKeys));
+        formData.append("uploader", username);
         const response = await axiosInstance.post("/upload", formData, {
           onUploadProgress: (progressEvent) => {
             const { loaded, total } = progressEvent;
@@ -86,7 +99,7 @@ const UploadPage = ({ username }) => {
             setUploadProgress(percentCompleted);
           },
         });
-        if (response.status === 200) {
+        if (response.status === 201) {
           setAlertSeverity("success");
           setAlertMessage("File uploaded successfully");
         } else {

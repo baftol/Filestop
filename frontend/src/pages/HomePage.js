@@ -1,16 +1,62 @@
 import React from "react";
+import { Container, Box, Typography, Button, Grid, Paper } from "@material-ui/core";
+import { Link } from "react-router-dom";
+import lock from "../assets/lock.jpg";
 
-const HomePage = () => {
+const HomePage = ({ username }) => {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Recent Uploads</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Placeholder for file uploads */}
-        <div className="bg-white shadow-md rounded p-4">File 1</div>
-        <div className="bg-white shadow-md rounded p-4">File 2</div>
-        <div className="bg-white shadow-md rounded p-4">File 3</div>
-      </div>
-    </div>
+    <Box py={10}>
+      <Box py={10} textAlign="center" style={{ backgroundImage: `url(${lock})`, backgroundSize: "auto", color: "white" }}>
+        <Typography variant="h3" gutterBottom>
+          Welcome to FileStop
+        </Typography>
+        {username ? (
+          <Typography variant="h5" gutterBottom>
+            Hello, {username}! Explore and share your files securely.
+          </Typography>
+        ) : (
+          <Typography variant="h5" gutterBottom>
+            The best place to manage and share your files securely.
+          </Typography>
+        )}
+        <Button variant="contained" color="secondary" size="large" component={Link} to={username ? "/upload" : "/register"}>
+          {username ? "Upload Files" : "Get Started"}
+        </Button>
+      </Box>
+      <Box py={10}>
+        <Container>
+          <Typography variant="h4" gutterBottom align="center">
+            Features
+          </Typography>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={3} style={{ padding: "20px", height: "100%" }}>
+                <Typography variant="h6" gutterBottom>
+                  Secure Storage
+                </Typography>
+                <Typography>Your files are stored securely with end-to-end encryption.</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={3} style={{ padding: "20px", height: "100%" }}>
+                <Typography variant="h6" gutterBottom>
+                  Easy Sharing
+                </Typography>
+                <Typography>Share files with specific users effortlessly.</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper elevation={3} style={{ padding: "20px", height: "100%" }}>
+                <Typography variant="h6" gutterBottom>
+                  User-Friendly
+                </Typography>
+                <Typography>A simple and intuitive interface for everyone.</Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 
