@@ -280,3 +280,27 @@ export async function decryptFileAndMetadata(encryptedFile, encryptedMetadata, e
     throw error;
   }
 }
+export async function decryptMetadata(encryptedMetadata, encryptedSymKey, iv, encryptedPrivateKey, derivedKey) {
+  try {
+    const symKey = await decryptSymKey(encryptedSymKey, encryptedPrivateKey, derivedKey);
+
+    // Decrypt the file content
+
+    const decryptedMetadataBuffer = await window.crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: base64ToArrayBuffer(iv),
+      },
+      symKey,
+      base64ToArrayBuffer(encryptedMetadata),
+    );
+    const decryptedMetadataString = new TextDecoder().decode(decryptedMetadataBuffer);
+    const metadata = JSON.parse(decryptedMetadataString);
+    return {
+      metadata: metadata,
+    }; // returns json
+  } catch (error) {
+    console.error("Error decrypting file and metadata:", error);
+    throw error;
+  }
+}

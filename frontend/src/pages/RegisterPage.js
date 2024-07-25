@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { handleRegister } from "../components/RegisterUser";
 import { Box, TextField, Button, Typography, Paper, Link, CssBaseline, Container, Grid, InputLabel } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import backgroundImage from "../assets/background-image.png"; // Ensure this path is correct
+import { Snackbar } from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
 
 const theme = createTheme();
 
@@ -13,6 +15,27 @@ const RegisterPage = () => {
   const [password, setpassword] = useState("");
   const [email, setemail] = useState("");
   const [message, setmessage] = useState("");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertSeverity, setAlertSeverity] = useState("success");
+
+  useEffect(() => {
+    if (message) {
+      setAlertOpen(true);
+      if (message === "User Registered Successfully") {
+        setAlertSeverity("success");
+        const timer = setInterval(() => {
+          navigate("/login");
+          clearInterval(timer);
+        }, 3000);
+      } else {
+        setAlertSeverity("error");
+        setAlertOpen(true);
+      }
+    }
+  }, [message]);
+  const handleCloseAlert = (event) => {
+    setAlertOpen(false);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -71,9 +94,11 @@ const RegisterPage = () => {
                 </Grid>
               </Grid>
               {message && (
-                <Typography variant="body2" color="error">
-                  {message}
-                </Typography>
+                <Snackbar open={alertOpen} autoHideDuration={30000} onClose={handleCloseAlert} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+                  <Alert onClose={handleCloseAlert} severity={alertSeverity} variant="filled">
+                    {message}
+                  </Alert>
+                </Snackbar>
               )}
             </Box>
           </Paper>

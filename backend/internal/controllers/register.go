@@ -36,7 +36,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 	hashedPassword, err := helpers.HashPassword(req.Password)
 	if err != nil {
-		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+		http.Error(w, "server Error while creating user", http.StatusInternalServerError)
+		return
 	}
 	user := models.User{
 		Username:         req.Username,
@@ -52,7 +53,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userdb, err := models.GetUserByUsername(config.UserDB, user.Username)
 	if err != nil {
-		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+		http.Error(w, "server Error while creating user", http.StatusInternalServerError)
+		return
 	}
 	usercache := models.SearchUser{
 		ID:        userdb.ID,
@@ -62,7 +64,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	userJSON, err := json.Marshal(usercache)
 	err = config.Rdb.Set(config.Ctx, user.Username, userJSON, 0).Err()
 	if err != nil {
-		http.Error(w, "Server Error while creating user", http.StatusInternalServerError)
+		http.Error(w, "server Error while creating user", http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")

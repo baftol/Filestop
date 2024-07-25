@@ -102,8 +102,13 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	accessMap := make(map[string]string)
-	for idx := range uploadRequest.EncryptedKeys {
-		accessMap[uploadRequest.EncryptedKeys[idx].Username] = uploadRequest.EncryptedKeys[idx].EncryptedSymKey
+	for _, key := range uploadRequest.EncryptedKeys {
+		accessMap[key.Username] = key.EncryptedSymKey
+		err := models.UpdateSharedFiles(config.UserDB, key.Username, encryptedFilePath)
+		if err != nil {
+			http.Error(w, "unable to upload file", http.StatusInternalServerError)
+			return
+		}
 	}
 	savedFile := models.File{
 		URLPath:           urlPath,

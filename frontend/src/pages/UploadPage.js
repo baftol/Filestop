@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { AppBar, Toolbar, Typography, Container, Box, Button, Snackbar, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Chip } from "@material-ui/core";
 import { Circle } from "rc-progress";
 import Alert from "@material-ui/lab/Alert";
@@ -7,8 +7,11 @@ import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import * as crypto from "../utils/crypto";
 import { axiosInstance } from "../utils/axiosRequest";
 import { getPublicKey } from "../components/GetUserPublicKey.js";
+import { UserContext } from "../context/UserContext.js";
+import { useNavigate } from "react-router-dom";
 
 const UploadPage = () => {
+  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -17,10 +20,13 @@ const UploadPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
+  const [urlDialogOpen, setUrlDialogOpen] = useState(false);
+  const [fileUrl, setFileUrl] = useState("");
+
   const inputRef = useRef();
   const [username, setUsername] = useState("");
   useEffect(() => {
-    const storedUsername = localStorage.getItem("username");
+    const storedUsername = localStorage.getItem("user");
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -40,24 +46,27 @@ const UploadPage = () => {
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
-
+  const { setUser } = useContext(UserContext);
   const handleUserSearch = async (event, value) => {
-    setUsername(localStorage.getItem("username"));
+    setUsername(localStorage.getItem("user"));
     if (value) {
       try {
         const response = await axiosInstance.get(`/users?query=${value}`);
         if (response.status === 200) {
-          console.log(username);
           const filteredOptions = response.data.filter((user) => !selectedUsers.some((selected) => selected.username === user.username) && user.username !== username);
-          console.log("Filtered Options:", filteredOptions);
           setUserOptions(filteredOptions);
         }
       } catch (error) {
         console.error("Error fetching users:", error);
         setAlertOpen(true);
         setAlertSeverity("error");
-        setAlertMessage("Error fetching users");
+        setUser(null);
+        setAlertMessage("Error fetching users, Please login again!");
         setUserOptions([]);
+        const timer = setInterval(() => {
+          navigate("/login");
+          clearInterval(timer);
+        }, 2000);
       }
     } else {
       setUserOptions([]);
@@ -66,6 +75,16 @@ const UploadPage = () => {
 
   const handleUserSelect = (event, newValue) => {
     setSelectedUsers(newValue);
+  };
+  const handleCloseUrlDialog = () => {
+    setUrlDialogOpen(false);
+  };
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(fileUrl);
+    setAlertMessage("URL copied to clipboard");
+    setAlertSeverity("success");
+    setAlertOpen(true);
   };
 
   const handleSubmit = async () => {
@@ -82,7 +101,7 @@ const UploadPage = () => {
             return { username: user.username, encryptedSymKey: encryptedSymKey };
           }),
         );
-        setUsername(localStorage.getItem("username"));
+        setUsername(localStorage.getItem("user"));
         const uploaderPublicKey = await getPublicKey(username);
         const encryptedSymKeyForUploader = await crypto.encryptSymKey(symKey, uploaderPublicKey);
         encryptedSymKeys.push({ username: username, encryptedSymKey: encryptedSymKeyForUploader });
@@ -100,6 +119,8 @@ const UploadPage = () => {
           },
         });
         if (response.status === 201) {
+          setFileUrl(response.data.url);
+          setUrlDialogOpen(true);
           setAlertSeverity("success");
           setAlertMessage("File uploaded successfully");
         } else {
@@ -198,6 +219,23 @@ const UploadPage = () => {
             </Button>
             <Button onClick={handleSubmit} color="primary">
               Share and Upload
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={urlDialogOpen} onClose={handleCloseUrlDialog}>
+          <DialogTitle>File URL</DialogTitle>
+          <DialogContent>
+            <Typography>Your file has been uploaded successfully. Here is the URL:</Typography>
+            <Box display="flex" alignItems="center" mt={2}>
+              <TextField value={fileUrl} fullWidth InputProps={{ readOnly: true }} />
+              <Button onClick={handleCopyUrl} color="primary">
+                Copy
+              </Button>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseUrlDialog} color="primary">
+              Close
             </Button>
           </DialogActions>
         </Dialog>

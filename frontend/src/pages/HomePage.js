@@ -1,26 +1,28 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Container, Box, Typography, Button, Grid, Paper } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import lock from "../assets/lock.jpg";
+import { UserContext } from "../context/UserContext";
 
-const HomePage = ({ username }) => {
+const HomePage = () => {
+  const { user } = useContext(UserContext);
   return (
     <Box py={10}>
       <Box py={10} textAlign="center" style={{ backgroundImage: `url(${lock})`, backgroundSize: "auto", color: "white" }}>
         <Typography variant="h3" gutterBottom>
           Welcome to FileStop
         </Typography>
-        {username ? (
+        {user ? (
           <Typography variant="h5" gutterBottom>
-            Hello, {username}! Explore and share your files securely.
+            Welcome back, Explore and share your files securely.
           </Typography>
         ) : (
           <Typography variant="h5" gutterBottom>
             The best place to manage and share your files securely.
           </Typography>
         )}
-        <Button variant="contained" color="secondary" size="large" component={Link} to={username ? "/upload" : "/register"}>
-          {username ? "Upload Files" : "Get Started"}
+        <Button variant="contained" color="secondary" size="large" component={Link} to={user ? "/upload" : "/register"}>
+          {user ? "Upload Files" : "Get Started"}
         </Button>
       </Box>
       <Box py={10}>

@@ -2,7 +2,7 @@ import axios from "axios";
 import { set as idbSet } from "idb-keyval";
 import * as crypto from "../utils/crypto";
 
-export const handleLogin = async (e, username, password, setMessage, navigate) => {
+export const handleLogin = async (e, username, password, setMessage, setUser) => {
   e.preventDefault();
   try {
     const hashedPassword = await crypto.hashPassword(password, username);
@@ -15,8 +15,8 @@ export const handleLogin = async (e, username, password, setMessage, navigate) =
     if (response.status === 200) {
       const derivedKey = await crypto.deriveKeyFromPassword(password, username);
       await idbSet("encryptionKey", derivedKey);
-      localStorage.setItem("username", username);
       setMessage("Login Successful");
+      setUser(username);
     }
   } catch (error) {
     setMessage("Login Failed");

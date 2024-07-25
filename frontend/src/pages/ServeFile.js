@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { CircularProgress, Container, Typography, Card, CardContent, CardActions, Button, Box } from "@material-ui/core";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 
@@ -7,15 +7,18 @@ import { axiosInstance } from "../utils/axiosRequest.js";
 import { get as idbGet } from "idb-keyval";
 import * as crypto from "../utils/crypto.js";
 import { getPrivateKey } from "../components/GetUserPrivateKey.js";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { UserContext } from "../context/UserContext.js";
 
 const DecryptFile = () => {
+  const navigate = useNavigate();
   const { filename } = useParams();
   const [decryptedMetadata, setDecryptedMetadata] = useState(null);
   const [decryptedFile, setDecryptedFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const username = localStorage.getItem("username");
+  const username = localStorage.getItem("user");
+  const { setUser } = useContext(UserContext);
 
   useEffect(() => {
     const fetchAndDecrypt = async () => {
@@ -38,23 +41,26 @@ const DecryptFile = () => {
         }
         const fileBuffer = response.data;
         console.log(username);
+        try {
+          await getPrivateKey(username);
+        } catch (error) {
+          setError("Please login again");
+          setUser(null);
+          setLoading(false);
+          const timer = setInterval(() => {
+            navigate("/login");
+            clearInterval(timer);
+          }, 3000);
+        }
         const encryptedPrivKey = await getPrivateKey(username);
         const result = await crypto.decryptFileAndMetadata(fileBuffer, encryptedMetadata, encryptedSymKey, iv, encryptedPrivKey, derivedKey);
         const decryptedFile = result.decryptedFile;
         const metadata = result.metadata;
         setDecryptedMetadata(metadata);
-        // const link = document.createElement("a");
-        // link.href = window.URL.createObjectURL(decryptedFile);
-        // link.download = metadata.file_name;
-        // link.click();
-        // // Revoke the object URL after download
-        // window.URL.revokeObjectURL(link.href);
-
         setDecryptedFile(decryptedFile);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch or decrypt file");
-        console.error(err);
+        setError("Access Denied");
         setLoading(false);
       }
     };

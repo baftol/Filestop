@@ -1,17 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { handleLogin } from "../components/LoginUser";
-import { Box, TextField, Button, Typography, Paper, Link, CssBaseline, Container, Grid, InputLabel } from "@mui/material";
+import { Box, TextField, Button, Typography, Paper, Link, CssBaseline, Container, Grid, InputLabel, Snackbar } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import MuiAlert from "@mui/material/Alert";
 import backgroundImage from "../assets/background-image.png"; // Ensure this path is correct
+import { UserContext } from "../context/UserContext";
 
 const theme = createTheme();
 
+const Alert = React.forwardRef((props, ref) => {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [username, setusername] = useState("");
-  const [password, setpassword] = useState("");
-  const [message, setmessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [username, setUsername] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("success");
+  const { user } = useContext(UserContext);
+  const { setUser } = useContext(UserContext);
+  useEffect(() => {
+    if (message) {
+      setAlertOpen(true);
+      if (message === "Login Successful") {
+        navigate("/");
+      } else {
+        setAlertSeverity("error");
+      }
+    }
+  }, [message]);
+  if (user !== null) {
+    navigate("/");
+    return;
+  }
+
+  const handleCloseAlert = (event) => {
+    setAlertOpen(false);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -38,15 +66,15 @@ const LoginPage = () => {
               <Typography variant="h4" sx={{ mb: 5 }} component="h1" align="center" color="#e0e0e0" gutterBottom>
                 Welcome back!
               </Typography>
-              <form onSubmit={(e) => handleLogin(e, username, password, setmessage, navigate)}>
+              <form onSubmit={(e) => handleLogin(e, username, password, setMessage, setUser)}>
                 <InputLabel htmlFor="username" style={{ color: "#e0e0e0" }}>
                   Username*
                 </InputLabel>
-                <TextField margin="normal" required fullWidth id="username" name="username" autoComplete="username" autoFocus value={username} onChange={(e) => setusername(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
+                <TextField margin="normal" required fullWidth id="username" name="username" autoComplete="username" autoFocus value={username} onChange={(e) => setUsername(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
                 <InputLabel htmlFor="password" style={{ color: "#e0e0e0" }}>
                   Password*
                 </InputLabel>
-                <TextField margin="normal" required fullWidth name="password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setpassword(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
+                <TextField margin="normal" required fullWidth name="password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} sx={{ mb: 3, mt: 0, backgroundColor: "#000", input: { color: "#fff" }, borderRadius: 1 }} />
                 <Link href="#" variant="body2" display="block" align="center">
                   Forgot your password?
                 </Link>
@@ -65,9 +93,11 @@ const LoginPage = () => {
                 </Grid>
               </Grid>
               {message && (
-                <Typography variant="body2" color="error">
-                  {message}
-                </Typography>
+                <Snackbar open={alertOpen} autoHideDuration={30000} onClose={handleCloseAlert} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+                  <Alert onClose={handleCloseAlert} severity={alertSeverity} variant="filled">
+                    {message}
+                  </Alert>
+                </Snackbar>
               )}
             </Box>
           </Paper>

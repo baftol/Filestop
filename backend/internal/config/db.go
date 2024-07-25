@@ -38,6 +38,7 @@ func ConnectUserDB() error {
 	email VARCHAR(255) NOT NULL,
 	encrypted_priv_key BYTEA NOT NULL,
 	public_key BYTEA NOT NULL,
+	shared_files JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`
 	_, err = UserDB.Exec(createTableSQL)

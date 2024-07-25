@@ -36,7 +36,10 @@ func main() {
 	r.Handle("/users", helpers.JWTMiddleware(http.HandlerFunc(controllers.SearchUsers))).Methods("GET")
 	r.Handle("/publickey", helpers.JWTMiddleware(http.HandlerFunc(controllers.GetPublicKey))).Methods("GET")
 	r.Handle("/uploads/{filename}", helpers.JWTMiddleware(http.HandlerFunc(controllers.ServeFile))).Methods("GET")
+	r.Handle("/metadata/{filename}", helpers.JWTMiddleware(http.HandlerFunc(controllers.ServeMetadata))).Methods("GET")
 	r.Handle("/privatekey/{username}", helpers.JWTMiddleware(http.HandlerFunc(controllers.GetPrivateKey))).Methods("GET")
+	r.Handle("/profile/{username}", helpers.JWTMiddleware(http.HandlerFunc(controllers.GetUserData))).Methods("GET")
+	r.Handle("/file/{filename}", helpers.JWTMiddleware(http.HandlerFunc(controllers.GetFileData))).Methods("GET")
 	// staticDir := filepath.Join("..", "..", "..", "frontend", "build")
 	// r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(filepath.Join(staticDir, "static")))))
 	//

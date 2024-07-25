@@ -53,3 +53,33 @@ func ServeFile(w http.ResponseWriter, r *http.Request) {
 
 	// Serve the file
 }
+func ServeMetadata(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	filename := vars["filename"]
+
+	// Define the path to the uploads directory
+	uploadDir := "./uploads"
+	filePath := filepath.Join(uploadDir, filename)
+
+	// Check if the file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.Error(w, "file not found", http.StatusNotFound)
+		return
+	}
+	file, err := models.GetFile(config.FileDB, filename)
+	if err != nil {
+		http.Error(w, "file not in database", http.StatusNotFound)
+		return
+	}
+	username := r.Context().Value("username").(string)
+	Key, err := helpers.ViewFile(username, file)
+	if err != nil {
+		http.Error(w, "no access", http.StatusForbidden)
+		return
+	}
+
+	w.Header().Set("X-File-Access-Key", Key)
+	w.Header().Set("X-File-Metadata", file.EncryptedMetadata)
+	w.Header().Set("IV", file.IV)
+
+}
